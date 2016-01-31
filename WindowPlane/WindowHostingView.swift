@@ -8,6 +8,17 @@
 
 import AppKit
 
+class IdentityTransformPreferringLayer : CALayer {
+    override var transform: CATransform3D {
+        get {
+            return super.transform
+        }
+        set(t) {
+            super.transform = CATransform3DIdentity
+        }
+    }
+}
+
 class WindowHostingView : View, WindowObserverDelegate {
     var views: [RealWindow : WindowView] = [RealWindow : WindowView]()
     
@@ -26,6 +37,7 @@ class WindowHostingView : View, WindowObserverDelegate {
         windowMoveGesture.action = Selector("windowMoveChanged")
         self.addGestureRecognizer(windowMoveGesture)
         self.layer?.masksToBounds = false
+        self.autoresizingMask = [.ViewWidthSizable, .ViewHeightSizable]
     }
     
     required init?(coder: NSCoder) {
@@ -41,6 +53,10 @@ class WindowHostingView : View, WindowObserverDelegate {
             addWindow(window)
             updateWindowContents(window)
         }
+    }
+    
+    override func makeBackingLayer() -> CALayer {
+        return IdentityTransformPreferringLayer()
     }
     
     func addWindow(window: RealWindow) {
