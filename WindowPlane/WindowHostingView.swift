@@ -22,7 +22,7 @@ class IdentityTransformPreferringLayer : CALayer {
 class WindowHostingView : View, WindowObserverDelegate {
     var views: [RealWindow : WindowView] = [RealWindow : WindowView]()
     
-    let scaleFactor: CGFloat = 0.2
+    let scaleFactor: CGFloat = 1.0
     
     let windowMoveGesture: NSPanGestureRecognizer = NSPanGestureRecognizer()
     
