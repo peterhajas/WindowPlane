@@ -171,6 +171,24 @@
     }
 }
 
+- (NSArray *)_blacklistedAppNames {
+    static dispatch_once_t onceToken;
+    static NSArray *__blacklistedAppNames = nil;
+    dispatch_once(&onceToken, ^{
+        __blacklistedAppNames = @[@"WindowPlane", @"Xcode", @"Window Server", @"Notification Center", @"Dock"];
+    });
+    
+    return __blacklistedAppNames;
+}
+
+- (BOOL)_windowShouldBeTracked:(RealWindow *)window {
+    NSString *appName = [window appName];
+    if ([[self _blacklistedAppNames] containsObject:appName]) {
+        return NO;
+    }
+    return YES;
+}
+
 - (void)_updateForAddedWindows:(NSArray *)added {
     for (NSNumber *windowIDNumber in added) {
         CGWindowID windowID = [windowIDNumber unsignedIntValue];
@@ -183,9 +201,11 @@
         [window setWindowTitle:[self _windowNameForWindowInfo:info]];
         [window setAppName:[self _appNameForWindowInfo:info]];
         
-        [[self visibleRealWindows] addObject:window];
-        
-        [[self delegate] realWindowDidAppear:window];
+        if ([self _windowShouldBeTracked:window]) {
+            [[self visibleRealWindows] addObject:window];
+            
+            [[self delegate] realWindowDidAppear:window];
+        }
     }
 }
 
@@ -195,7 +215,7 @@
         
         RealWindow *window = [self _realWindowForWindowID:windowID];
         
-        if (window) {
+        if (window && [self _windowShouldBeTracked:window]) {
             [[self visibleRealWindows] removeObject:window];
             
             [[self delegate] realWindowDidDisappear:window];
@@ -218,9 +238,11 @@
     
     RealWindow *window = [self _realWindowForWindowID:windowID];
     
-    [window setContents:image];
-    
-    [[self delegate] realWindowContentsChanged:window];
+    if (window) {
+        [window setContents:image];
+        
+        [[self delegate] realWindowContentsChanged:window];
+    }
 }
 
 @end
